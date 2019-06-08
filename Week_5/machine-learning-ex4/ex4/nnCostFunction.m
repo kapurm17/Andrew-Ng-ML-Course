@@ -61,19 +61,61 @@ Theta2_grad = zeros(size(Theta2));
 %               the regularization separately and then add them to Theta1_grad
 %               and Theta2_grad from Part 2.
 %
-X = [ones(m,1) X];
 
-A1 = sigmoid(X*Theta1');
 
-As1 = [ones(size(A1,1),1) A1];
-H = sigmoid(As1*Theta2');
+a1_base = [ones(m , 1) X];
+z2 = (a1_base*Theta1');
+a2 = sigmoid(z2);
 
-%[vl, p] = max(H, [], 2);
-y_m = eye(num_labels)(y,:);
-%size(y_m)
-%size(H)
-%sum(sum(Theta1.^2))
-J = y_m'
+a2_base = [ones(size(z2)(1) ,1) a2];
+z3 = a2_base*Theta2';
+
+hx = sigmoid(z3);
+
+hx1 = log(hx);
+hx2 = log(1-hx);
+
+y_multi = eye(num_labels)(y,:);
+
+J = -(sum(sum(y_multi .* hx1)) + sum(sum((1-y_multi) .* hx2)))/m;
+
+reg =  lambda * (sum(sum(Theta1(:,2:end).^2)) + sum(sum(Theta2(:, 2:end).^2)))/(2*m);
+
+J = J + reg;
+
+
+%Backprop
+
+D1 = zeros(size(Theta1));
+D2 = zeros(size(Theta2));
+
+for i = 1:m
+  
+  A1 = X(i, :);
+  
+  del3 = hx(i, :) - y_multi(i,:);
+  
+  del2 = (del3*Theta2).*(a2_base(i,:).*(1-a2_base(i,:)));
+  
+  D2 = D2 + del3' * a2_base(i, :);
+  D1 = D1 + del2'(2:end, :) * a1_base(i, :);
+  
+
+
+endfor
+
+  Theta1_grad = (1/m) * D1;
+  Theta2_grad = (1/m) * D2;
+
+
+% REGULARIZATION OF THE GRADIENT
+
+Theta1_grad(:,2:end) = Theta1_grad(:,2:end) + (lambda/m)*(Theta1(:,2:end));
+Theta2_grad(:,2:end) = Theta2_grad(:,2:end) + (lambda/m)*(Theta2(:,2:end));
+
+
+
+
 
 
 
